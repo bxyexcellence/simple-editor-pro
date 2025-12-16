@@ -1,0 +1,71 @@
+/* Table Node Styles */
+.tiptap.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1em 0;
+  overflow: hidden;
+}
+
+.tiptap.ProseMirror table td,
+.tiptap.ProseMirror table th {
+  min-width: 1em;
+  min-height: 2.5em;
+  border: 1px solid var(--tt-border-color, #e5e7eb);
+  padding: 0.5em 0.75em;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.tiptap.ProseMirror table td p:empty,
+.tiptap.ProseMirror table th p:empty {
+  min-height: 1.5em;
+  margin: 0;
+}
+
+.tiptap.ProseMirror table td p,
+.tiptap.ProseMirror table th p {
+  min-height: 1.5em;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tiptap.ProseMirror table th {
+  font-weight: 600;
+  text-align: left;
+  background-color: var(--tt-gray-light-100, #f9fafb);
+}
+
+.dark .tiptap.ProseMirror table th {
+  background-color: var(--tt-gray-dark-100, #374151);
+  color: var(--tt-theme-text, var(--tt-gray-dark-900, #f9fafb));
+}
+
+.tiptap.ProseMirror table .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
+
+.tiptap.ProseMirror table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--tt-brand-color-500, #6366f1);
+  pointer-events: none;
+}
+
+.dark .tiptap.ProseMirror table td,
+.dark .tiptap.ProseMirror table th {
+  border-color: var(--tt-gray-dark-a-200, #374151);
+}
+

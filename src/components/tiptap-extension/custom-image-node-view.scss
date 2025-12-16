@@ -1,0 +1,24 @@
+.tiptap.ProseMirror {
+  .custom-image-wrapper {
+    display: inline-block;
+   // margin: 2rem 0;
+    
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      outline: 0.125rem solid transparent;
+      border-radius: var(--tt-radius-xs, 0.25rem);
+      transition: outline-color 0.2s ease;
+    }
+    
+    // 当节点被选中时，显示蓝色边框
+    &.ProseMirror-selectednode img,
+    img.selected {
+      outline-color: var(--tt-brand-color-500, #6366f1) !important;
+      outline-width: 0.125rem;
+      outline-style: solid;
+    }
+  }
+}
+
