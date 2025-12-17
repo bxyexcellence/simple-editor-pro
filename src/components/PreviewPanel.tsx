@@ -205,7 +205,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     if (actualContentType === 'markdown') {
       try {
         // 使用 marked 将 markdown 转换为 HTML
-        // 配置 marked 以支持链接和图片的正确解析
+        // 配置 marked 以支持链接和图片的正确解析，以及更完整的 markdown 特性
         const parsed = marked.parse(content, { 
           breaks: true,
           gfm: true // 启用 GitHub Flavored Markdown

@@ -538,37 +538,26 @@ export function SimpleEditor({
         // 处理粘贴的文本内容，检测是否为 markdown
         const text = clipboardData.getData('text/plain')
         if (text && enableMarkdown && editor) {
-          // 检测是否为 markdown 语法（链接或图片）
-          const markdownLinkPattern = /\[([^\]]*)\]\(([^)]+)\)/g
-          const markdownImagePattern = /!\[([^\]]*)\]\(([^)]+)\)/g
+          // 使用 detectContentType 检测是否为 markdown（支持标题、列表、粗体、链接、图片等）
+          const detectedType = detectContentType(text)
           
-          // 如果包含 markdown 链接或图片，尝试转换
-          if (markdownLinkPattern.test(text) || markdownImagePattern.test(text)) {
-            // 检查是否整个文本都是 markdown（而不是混合内容）
-            const isPureMarkdown = text.trim().match(/^(\[.*?\]\(.*?\)|!\[.*?\]\(.*?\)|\s*)+$/)
-            
-            if (isPureMarkdown || text.includes('\n')) {
-              // 如果是纯 markdown 或多行内容，使用 setContent 转换
+          if (detectedType === 'markdown') {
+            try {
+              event.preventDefault()
+              // 使用 insertContent 并指定 contentType 为 markdown，让 Tiptap 自动转换
+              editor.commands.insertContent(text, { contentType: 'markdown' })
+              return true
+            } catch (error) {
+              console.warn('Failed to paste markdown:', error)
+              // 转换失败，尝试使用 marked 转换为 HTML
               try {
-                event.preventDefault()
-                editor.commands.insertContent(text, { contentType: 'markdown' })
-                return true
-              } catch (error) {
-                console.warn('Failed to paste markdown:', error)
-                // 转换失败，继续使用默认粘贴行为
-              }
-            } else {
-              // 单行 markdown 链接或图片，尝试转换
-              try {
-                event.preventDefault()
-                // 将 markdown 转换为 HTML 然后插入
                 const html = marked.parse(text, { breaks: true, gfm: true })
                 if (typeof html === 'string') {
                   editor.commands.insertContent(html)
                   return true
                 }
-              } catch (error) {
-                console.warn('Failed to convert markdown:', error)
+              } catch (parseError) {
+                console.warn('Failed to convert markdown to HTML:', parseError)
                 // 转换失败，继续使用默认粘贴行为
               }
             }
@@ -643,7 +632,7 @@ export function SimpleEditor({
       // 默认返回 initialContent（可能是 HTML 或纯文本）
       return initialContent
     })(),
-    contentType: initialMarkdown ? 'markdown' : undefined,
+    contentType: enableMarkdown ? 'markdown' : undefined,
     onUpdate: ({ editor }) => {
       if (onChange) {
         const content = editor.getHTML()

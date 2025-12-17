@@ -24,7 +24,9 @@
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly --outDir dist",
     "dev": "vite build --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "demo": "cd demo && vite",
+    "demo:build": "cd demo && vite build"
   },
   "keywords": [
     "tiptap",
@@ -38,9 +40,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/bxyexcellence/simple-editor-pro.git"
   },
-  "homepage": "",
+  "homepage": "https://github.com/bxyexcellence/simple-editor-pro#readme",
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
