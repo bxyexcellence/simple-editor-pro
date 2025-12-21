@@ -13,7 +13,7 @@ import {
   type NodeWithPos,
 } from "@tiptap/react"
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 export const MAC_SYMBOLS: Record<string, string> = {
   mod: "⌘",

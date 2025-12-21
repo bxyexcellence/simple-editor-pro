@@ -271,7 +271,7 @@
 .preview-content h4,
 .preview-content h5,
 .preview-content h6 {
-  margin-top: 1.5em;
+  margin-top: 0.5em;
   margin-bottom: 0.5em;
   font-weight: 600;
   line-height: 1.25;
@@ -296,8 +296,8 @@
 
 .preview-content ul:not([data-type="taskList"]),
 .preview-content ol {
-  margin-top: 1.5em;
-  margin-bottom: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
   padding-left: 1.5em;
 }
 
