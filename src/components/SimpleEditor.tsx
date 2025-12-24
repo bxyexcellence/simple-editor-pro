@@ -324,6 +324,7 @@ interface SimpleEditorProps {
   onChange?: (content: string) => void
   onMarkdownChange?: (markdown: string) => void
   enableMarkdown?: boolean
+  enableMention?: boolean
 }
 
 export type { SimpleEditorProps }
@@ -341,7 +342,8 @@ export function SimpleEditor({
   onImageUpload,
   onChange,
   onMarkdownChange,
-  enableMarkdown = true
+  enableMarkdown = true,
+  enableMention = true
 }: SimpleEditorProps = {}) {
   const isMobile = useIsBreakpoint()
   const { height } = useWindowSize()
@@ -594,12 +596,14 @@ export function SimpleEditor({
       TableRow,
       TableHeader,
       TableCell,
-      Mention.configure({
-        HTMLAttributes: {
-          class: 'mention',
-        },
-        suggestion: createMentionSuggestion(() => userListRef.current),
-      }),
+      ...(enableMention ? [
+        Mention.configure({
+          HTMLAttributes: {
+            class: 'mention',
+          },
+          suggestion: createMentionSuggestion(() => userListRef.current),
+        })
+      ] : []),
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
