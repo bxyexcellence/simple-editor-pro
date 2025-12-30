@@ -84,31 +84,6 @@ export const CustomImage = Image.extend<CustomImageOptions>({
     let originalSrc = node.attrs.originalSrc || node.attrs.src
     const alt = node.attrs.alt
     const title = node.attrs.title
-
-    // 清理 originalSrc，确保它只包含 URL，不包含其他属性内容
-    // 如果 originalSrc 包含了类似 "url alt=\"...\" title=\"...\"" 的内容，需要提取纯 URL
-    if (originalSrc && typeof originalSrc === 'string') {
-      // 移除可能包含的其他属性（如 alt="..." title="..."）
-      // URL 通常不会包含未转义的空格，所以遇到空格就停止
-      // 或者如果包含 alt= 或 title=，说明可能混入了其他属性
-      const trimmedSrc = originalSrc.trim()
-      if (trimmedSrc.includes(' alt=') || trimmedSrc.includes(' title=') || trimmedSrc.includes('alt="') || trimmedSrc.includes('title="')) {
-        // 提取第一个空格之前的部分作为 URL
-        const spaceIndex = trimmedSrc.indexOf(' ')
-        if (spaceIndex > 0) {
-          originalSrc = trimmedSrc.substring(0, spaceIndex)
-        } else {
-          // 如果没有空格，尝试匹配 URL 部分（不包含引号）
-          const urlMatch = trimmedSrc.match(/^([^\s"']+)/)
-          if (urlMatch) {
-            originalSrc = urlMatch[1]
-          }
-        }
-      } else {
-        originalSrc = trimmedSrc
-      }
-    }
-
     // 清理 HTMLAttributes，移除可能冲突的属性，避免属性拼接错误
     const { src, alt: _alt, title: _title, ...restAttributes } = HTMLAttributes || {}
 
@@ -137,7 +112,11 @@ export const CustomImage = Image.extend<CustomImageOptions>({
     if (title != null && title !== '') {
       attrs.title = String(title).trim()
     }
-
+    if (this.options.filterImageSrc) {
+      const result = this.options.filterImageSrc(src) as string
+      attrs.src = result ??  attrs.src
+      attrs.originalSrc = result  ?? originalSrc
+    }
     return ['img', attrs]
   },
 
