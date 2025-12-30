@@ -1,6 +1,6 @@
 {
   "name": "simple-editor-pro",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A powerful and customizable rich text editor built with Tiptap",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
