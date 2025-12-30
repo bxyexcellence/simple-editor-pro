@@ -4,6 +4,7 @@ import { CustomImageNodeView } from './custom-image-node-view'
 
 export interface CustomImageOptions {
   renderImage?: (url: string) => string
+  filterImageSrc?: (src: string) => string | null | false
 }
 
 /**
@@ -19,6 +20,7 @@ export const CustomImage = Image.extend<CustomImageOptions>({
     return {
       ...this.parent?.(),
       renderImage: undefined,
+      filterImageSrc: undefined,
     }
   },
 
@@ -50,9 +52,20 @@ export const CustomImage = Image.extend<CustomImageOptions>({
           const src = img.getAttribute('src')
           if (!src) return false
 
+          // 使用外部传入的过滤函数处理 src
+          let filteredSrc = src
+          if (this.options.filterImageSrc) {
+            const result = this.options.filterImageSrc(src)
+            if (result === false || result === null) {
+              // 如果过滤函数返回 false 或 null，表示拒绝此图片
+              return false
+            }
+            filteredSrc = result
+          }
+
           return {
-            src,
-            originalSrc: src, // 保存原始 URL
+            src: filteredSrc,
+            originalSrc: filteredSrc, // 保存原始 URL
             alt: img.getAttribute('alt'),
             title: img.getAttribute('title'),
           }

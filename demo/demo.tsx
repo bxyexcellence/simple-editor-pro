@@ -202,6 +202,9 @@ function hello() {
               language="zh"
               enableThemeToggle={true}
               showLeftToolbar={true}
+              filterImageSrc={(src) => {
+                return src
+              }}
               onChange={(html) => {
                 setHtmlOutput(html)
               }}

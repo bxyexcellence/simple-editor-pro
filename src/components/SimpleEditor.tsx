@@ -316,6 +316,7 @@ interface SimpleEditorProps {
   initialContent?: string
   initialMarkdown?: string
   renderImage?: (url: string) => string
+  filterImageSrc?: (src: string) => string | null | false
   themeColor?: string
   language?: Language
   enableThemeToggle?: boolean
@@ -335,6 +336,7 @@ export function SimpleEditor({
   initialContent,
   initialMarkdown,
   renderImage,
+  filterImageSrc,
   themeColor,
   language = 'zh',
   enableThemeToggle = false,
@@ -585,6 +587,7 @@ export function SimpleEditor({
       Highlight.configure({ multicolor: true }),
       CustomImage.configure({
         renderImage,
+        filterImageSrc,
       }),
       Typography,
       Superscript,
