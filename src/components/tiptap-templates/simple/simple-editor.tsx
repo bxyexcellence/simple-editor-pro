@@ -472,6 +472,10 @@ export function SimpleEditor({
         link: {
           openOnClick: false,
           enableClickSelection: true,
+          HTMLAttributes: {
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          },
         },
       }),
       HorizontalRule,

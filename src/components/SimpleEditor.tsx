@@ -85,7 +85,7 @@ import { useElementWidth } from "@/hooks/use-element-width"
 
 
 // --- Lib ---
-import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
+import { handleImageUpload, MAX_FILE_SIZE, normalizeUrl } from "@/lib/tiptap-utils"
 import { detectContentType } from "@/components/PreviewPanel"
 
 // --- Styles ---
@@ -402,8 +402,17 @@ export function SimpleEditor({
               if (markdownLinkPattern.test(lastLine) || markdownImagePattern.test(lastLine)) {
                 // 尝试转换这一行的 markdown 语法
                 try {
-                  const html = marked.parse(lastLine, { breaks: true, gfm: true })
+                  let html = marked.parse(lastLine, { breaks: true, gfm: true })
                   if (typeof html === 'string' && html.trim() && html !== lastLine) {
+                    // 规范化 HTML 中的链接 URL
+                    html = html.replace(
+                      /<a\s+([^>]*?)href=(["'])([^"']*?)\2([^>]*)>/gi,
+                      (_match, beforeHref, quote, url, afterHref) => {
+                        const normalizedUrl = normalizeUrl(url)
+                        return `<a ${beforeHref}href=${quote}${normalizedUrl}${quote}${afterHref}>`
+                      }
+                    )
+                    
                     // 获取当前光标位置
                     const { selection } = editor.state
                     const { $from } = selection
@@ -541,30 +550,31 @@ export function SimpleEditor({
 
         // 处理粘贴的文本内容，检测是否为 markdown
         const text = clipboardData.getData('text/plain')
-        if (text && enableMarkdown && editor) {
-          // 使用 detectContentType 检测是否为 markdown（支持标题、列表、粗体、链接、图片等）
-          const detectedType = detectContentType(text)
+        const htmlText = clipboardData.getData('text/html')
+        
+        if ((text || htmlText) && editor) {
+          const contentToProcess = htmlText || text
           
-          if (detectedType === 'markdown') {
-            try {
-              event.preventDefault()
-              // 使用 insertContent 并指定 contentType 为 markdown，让 Tiptap 自动转换
-              editor.commands.insertContent(text, { contentType: 'markdown' })
-              return true
-            } catch (error) {
-              console.warn('Failed to paste markdown:', error)
-              // 转换失败，尝试使用 marked 转换为 HTML
-              try {
-                const html = marked.parse(text, { breaks: true, gfm: true })
-                if (typeof html === 'string') {
-                  editor.commands.insertContent(html)
-                  return true
+          if (contentToProcess) {
+            event.preventDefault()
+            
+            // 直接插入内容，不处理外部图片
+            if (text) {
+              const detectedType = detectContentType(text)
+              if (detectedType === 'markdown' && enableMarkdown) {
+                try {
+                  editor.commands.insertContent(text, { contentType: 'markdown' })
+                } catch {
+                  editor.commands.insertContent(text)
                 }
-              } catch (parseError) {
-                console.warn('Failed to convert markdown to HTML:', parseError)
-                // 转换失败，继续使用默认粘贴行为
+              } else {
+                editor.commands.insertContent(text)
               }
+            } else if (htmlText) {
+              editor.commands.insertContent(htmlText)
             }
+            
+            return true
           }
         }
 
@@ -577,6 +587,10 @@ export function SimpleEditor({
         link: {
           openOnClick: false,
           enableClickSelection: true,
+          HTMLAttributes: {
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          },
         },
       }),
       Markdown,

@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, ReactElement } from 'react';
 import parse, { HTMLReactParserOptions, domToReact, DOMNode } from 'html-react-parser';
 import { marked } from 'marked';
 import { applyThemeColor } from '@/lib/theme'
+import { normalizeUrl } from '@/lib/tiptap-utils'
 
 // Import all node styles for preview
 import "@/components/tiptap-node/blockquote-node/blockquote-node.scss"
@@ -220,7 +221,28 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
     if (!mergedRenderers || Object.keys(mergedRenderers).length === 0) {
       // 没有 renderers，直接使用 dangerouslySetInnerHTML
-      return { type: 'html' as const, content: htmlContent }
+      // 自动为所有链接添加 target="_blank" 和 rel="noopener noreferrer"，并规范化 URL
+      const processedHtml = htmlContent.replace(
+        /<a\s+([^>]*?)href=(["'])([^"']*?)\2([^>]*)>/gi,
+        (_match, beforeHref, quote, url, afterHref) => {
+          // 规范化 URL
+          const normalizedUrl = normalizeUrl(url)
+          
+          // 构建新的属性字符串
+          let newAttrs = `${beforeHref}href=${quote}${normalizedUrl}${quote}${afterHref}`
+          
+          // 检查是否已经有 target 属性
+          if (!/target=/i.test(newAttrs)) {
+            newAttrs += ' target="_blank"'
+          }
+          // 检查是否已经有 rel 属性
+          if (!/rel=/i.test(newAttrs)) {
+            newAttrs += ' rel="noopener noreferrer"'
+          }
+          return `<a ${newAttrs}>`
+        }
+      )
+      return { type: 'html' as const, content: processedHtml }
     }
 
     try {
@@ -230,6 +252,24 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           // 只处理元素节点
           if (domNode.type === 'tag' && 'name' in domNode && domNode.name) {
             const tagName = domNode.name.toLowerCase()
+            
+            // 对于链接标签，如果没有自定义 renderer，自动添加 target 和 rel 属性，并规范化 URL
+            if (tagName === 'a' && !mergedRenderers['a']) {
+              if ('attribs' in domNode && domNode.attribs) {
+                // 规范化 href URL
+                if (domNode.attribs.href) {
+                  domNode.attribs.href = normalizeUrl(domNode.attribs.href)
+                }
+                // 添加 target 和 rel 属性
+                if (!domNode.attribs.target) {
+                  domNode.attribs.target = '_blank'
+                }
+                if (!domNode.attribs.rel) {
+                  domNode.attribs.rel = 'noopener noreferrer'
+                }
+              }
+            }
+            
             const renderer = mergedRenderers[tagName]
 
             if (renderer) {

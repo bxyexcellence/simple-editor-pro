@@ -443,6 +443,44 @@ export function isAllowedUri(
   )
 }
 
+/**
+ * 规范化 URL，确保有协议前缀
+ * 如果 URL 没有协议（如 www.example.com），自动添加 https://
+ * @param url 要规范化的 URL
+ * @returns 规范化后的 URL
+ */
+export function normalizeUrl(url: string): string {
+  if (!url || typeof url !== 'string') {
+    return url
+  }
+
+  const trimmedUrl = url.trim()
+
+  // 如果已经是完整的 URL（包含协议），直接返回
+  if (/^https?:\/\//i.test(trimmedUrl)) {
+    return trimmedUrl
+  }
+
+  // 如果包含其他协议（如 mailto:, tel:, ftp: 等），直接返回
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmedUrl)) {
+    return trimmedUrl
+  }
+
+  // 如果是相对路径（以 / 开头）或空字符串，直接返回
+  if (trimmedUrl.startsWith('/') || trimmedUrl.startsWith('#') || trimmedUrl === '') {
+    return trimmedUrl
+  }
+
+  // 看起来像是域名格式（包含点，且看起来像域名），添加 https://
+  // 匹配类似 www.example.com、example.com、subdomain.example.com 等格式
+  if (/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+/i.test(trimmedUrl)) {
+    return `https://${trimmedUrl}`
+  }
+
+  // 其他情况，直接返回原值
+  return trimmedUrl
+}
+
 export function sanitizeUrl(
   inputUrl: string,
   baseUrl: string,
@@ -458,6 +496,75 @@ export function sanitizeUrl(
     // If URL creation fails, it's considered invalid
   }
   return "#"
+}
+
+/**
+ * 检测文本中的图片URL
+ * @param text 要检测的文本
+ * @returns 图片URL数组，包含URL、alt文本和类型（html或markdown）
+ */
+export interface ImageUrlInfo {
+  url: string
+  alt: string
+  type: 'html' | 'markdown'
+  originalMatch: string
+}
+
+export function extractImageUrls(text: string): ImageUrlInfo[] {
+  const images: ImageUrlInfo[] = []
+
+  // 检测 HTML img 标签: <img src="url" alt="text">
+  const htmlImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?[^>]*>/gi
+  let match
+  while ((match = htmlImgRegex.exec(text)) !== null) {
+    images.push({
+      url: match[1],
+      alt: match[2] || '',
+      type: 'html',
+      originalMatch: match[0]
+    })
+  }
+
+  // 检测 Markdown 图片语法: ![alt](url) 或 ![alt](url "title")
+  const markdownImgRegex = /!\[([^\]]*)\]\(([^)]+)(?:\s+"[^"]*")?\)/g
+  while ((match = markdownImgRegex.exec(text)) !== null) {
+    images.push({
+      url: match[2].trim(),
+      alt: match[1] || '',
+      type: 'markdown',
+      originalMatch: match[0]
+    })
+  }
+
+  return images
+}
+
+/**
+ * 判断URL是否为外部链接
+ * @param url 要检查的URL
+ * @returns 是否为外部链接
+ */
+export function isExternalUrl(url: string): boolean {
+  try {
+    // 处理相对URL
+    if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
+      return false
+    }
+
+    // 处理 data: 和 blob: URL
+    if (url.startsWith('data:') || url.startsWith('blob:')) {
+      return false
+    }
+
+    const urlObj = new URL(url, window.location.href)
+    const currentOrigin = window.location.origin
+
+    // 比较 origin
+    return urlObj.origin !== currentOrigin
+  } catch {
+    // URL解析失败，可能是相对路径，不算外部链接
+    return false
+  }
 }
 
 /**

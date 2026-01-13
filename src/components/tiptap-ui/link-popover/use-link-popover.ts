@@ -13,6 +13,7 @@ import {
   isMarkInSchema,
   isNodeTypeSelected,
   sanitizeUrl,
+  normalizeUrl,
 } from "@/lib/tiptap-utils"
 
 /**
@@ -128,12 +129,18 @@ export function useLinkHandler(props: LinkHandlerProps) {
     const { selection } = editor.state
     const isEmpty = selection.empty
 
+    // 规范化 URL，确保有协议前缀
+    const normalizedUrl = normalizeUrl(url)
+
     let chain = editor.chain().focus()
 
-    chain = chain.extendMarkRange("link").setLink({ href: url })
+    // TipTap Link mark 只接受 href 属性，target 和 rel 通过扩展的 HTMLAttributes 配置设置
+    chain = chain.extendMarkRange("link").setLink({ 
+      href: normalizedUrl,
+    })
 
     if (isEmpty) {
-      chain = chain.insertContent({ type: "text", text: url })
+      chain = chain.insertContent({ type: "text", text: normalizedUrl })
     }
 
     chain.run()

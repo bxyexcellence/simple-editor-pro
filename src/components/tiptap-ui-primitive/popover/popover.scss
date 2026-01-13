@@ -19,6 +19,11 @@
   transform-origin: var(--radix-popover-content-transform-origin);
   max-height: var(--radix-popover-content-available-height);
 
+  /* 全屏模式下确保 Popover 显示在最上层 */
+  body.editor-fullscreen & {
+    z-index: 2100;
+  }
+
   > * {
     max-height: var(--radix-popover-content-available-height);
   }
