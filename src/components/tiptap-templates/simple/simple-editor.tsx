@@ -594,17 +594,20 @@ export function SimpleEditor({
   useEffect(() => {
     if (isFullscreen) {
       document.body.style.overflow = 'hidden'
+      document.body.classList.add('editor-fullscreen')
       if (wrapperRef.current) {
         wrapperRef.current.classList.add('is-fullscreen')
       }
     } else {
       document.body.style.overflow = ''
+      document.body.classList.remove('editor-fullscreen')
       if (wrapperRef.current) {
         wrapperRef.current.classList.remove('is-fullscreen')
       }
     }
     return () => {
       document.body.style.overflow = ''
+      document.body.classList.remove('editor-fullscreen')
     }
   }, [isFullscreen])
 
