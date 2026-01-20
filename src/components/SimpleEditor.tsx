@@ -551,31 +551,28 @@ export function SimpleEditor({
         // 处理粘贴的文本内容，检测是否为 markdown
         const text = clipboardData.getData('text/plain')
         const htmlText = clipboardData.getData('text/html')
-        
-        if ((text || htmlText) && editor) {
-          const contentToProcess = htmlText || text
-          
-          if (contentToProcess) {
-            event.preventDefault()
-            
-            // 直接插入内容，不处理外部图片
-            if (text) {
-              const detectedType = detectContentType(text)
-              if (detectedType === 'markdown' && enableMarkdown) {
-                try {
-                  editor.commands.insertContent(text, { contentType: 'markdown' })
-                } catch {
-                  editor.commands.insertContent(text)
-                }
-              } else {
-                editor.commands.insertContent(text)
-              }
-            } else if (htmlText) {
-              editor.commands.insertContent(htmlText)
+
+        if (htmlText && editor) {
+          event.preventDefault()
+          editor.commands.insertContent(htmlText)
+          return true
+        }
+
+        if (text && editor) {
+          event.preventDefault()
+
+          const detectedType = detectContentType(text)
+          if (detectedType === 'markdown' && enableMarkdown) {
+            try {
+              editor.commands.insertContent(text, { contentType: 'markdown' })
+            } catch {
+              editor.commands.insertContent(text)
             }
-            
-            return true
+          } else {
+            editor.commands.insertContent(text)
           }
+
+          return true
         }
 
         return false
