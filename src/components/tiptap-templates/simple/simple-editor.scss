@@ -1,6 +1,5 @@
 @use "../../../styles/_variables.scss";
 @use "../../../styles/_keyframe-animations.scss";
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 body {
   --tt-toolbar-height: 44px;
@@ -12,7 +11,7 @@ body {
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--tt-theme-text);
   font-optical-sizing: auto;
   font-weight: 400;
@@ -53,7 +52,7 @@ body,
 }
 
 .tiptap.ProseMirror {
-  font-family: "DM Sans", sans-serif;
+  font-family: "DM Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .simple-editor-wrapper {
