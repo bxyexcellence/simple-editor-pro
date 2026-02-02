@@ -88,6 +88,32 @@ import { useElementWidth } from "@/hooks/use-element-width"
 import { handleImageUpload, MAX_FILE_SIZE, normalizeUrl } from "@/lib/tiptap-utils"
 import { detectContentType } from "@/components/PreviewPanel"
 
+/** 判断粘贴的 HTML 是否为有语义的富文本（代码块、标题、列表等），而非网页样式片段 */
+function isRichSemanticHtml(html: string): boolean {
+  const lower = html.toLowerCase()
+  return (
+    /<pre\b/.test(lower) ||
+    /<code\b/.test(lower) ||
+    /<h[1-6]\b/.test(lower) ||
+    /<ul\b/.test(lower) ||
+    /<ol\b/.test(lower) ||
+    /<blockquote\b/.test(lower) ||
+    /<table\b/.test(lower)
+  )
+}
+
+/** 清理 HTML 中可能导致 schema 错误的内容（如空列表、空列表项） */
+function sanitizeHtmlForPaste(html: string): string {
+  return html
+    // 移除空的列表（<ul></ul> 或 <ol></ol>，可能有空格/换行）
+    .replace(/<ul[^>]*>\s*<\/ul>/gi, '')
+    .replace(/<ol[^>]*>\s*<\/ol>/gi, '')
+    // 移除空的列表项（<li></li> 或只有空白）
+    .replace(/<li[^>]*>\s*<\/li>/gi, '')
+    // 移除列表项内的空 div（飞书等编辑器常见：<li><div></div></li>）
+    .replace(/<li([^>]*)><div[^>]*>\s*<\/div><\/li>/gi, '')
+}
+
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss"
 
@@ -548,13 +574,23 @@ export function SimpleEditor({
           return true
         }
 
-        // 处理粘贴的文本内容，检测是否为 markdown
+        // 处理粘贴：富文本（代码块、标题、列表等）保留 HTML；网页样式片段只用纯文本
         const text = clipboardData.getData('text/plain')
         const htmlText = clipboardData.getData('text/html')
 
-        if (htmlText && editor) {
+        if (htmlText && isRichSemanticHtml(htmlText) && editor) {
           event.preventDefault()
-          editor.commands.insertContent(htmlText)
+          try {
+            // 清理可能导致 schema 错误的内容（如空列表）
+            const sanitizedHtml = sanitizeHtmlForPaste(htmlText)
+            editor.commands.insertContent(sanitizedHtml)
+          } catch (err) {
+            // 粘贴的 HTML 可能与编辑器 schema 不兼容（如空列表、非法结构），退化为纯文本
+            const stripHtmlText = htmlText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+            if (stripHtmlText) {
+              editor.commands.insertContent(stripHtmlText)
+            }
+          }
           return true
         }
 
@@ -572,6 +608,18 @@ export function SimpleEditor({
             editor.commands.insertContent(text)
           }
 
+          return true
+        }
+
+        // 仅有 HTML 且无语义结构时：提取纯文本，避免插入带样式的网页片段
+        if (htmlText && editor) {
+          event.preventDefault()
+          const stripHtmlText = htmlText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+          if (stripHtmlText) {
+            editor.commands.insertContent(stripHtmlText)
+          } else {
+            editor.commands.insertContent(htmlText)
+          }
           return true
         }
 
